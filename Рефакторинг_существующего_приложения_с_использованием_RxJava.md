@@ -40,3 +40,26 @@ Observable.just(contactDetailsRepository.getDetailsContact(id));
 ```java
 Single.fromCallable(() -> contactDetailsRepository.getDetailsContact(id));
 ```
+
+#### Несколько явных `subscribe` в одной Rx "цепочке"
+Посмотрим типичный пример:
+```java
+disposable.add(repository.getFoo()
+  .subscribeOn(...)
+  .observeOn(...)
+  .subscribe(result -> {
+    anotherRepository.getBar(result)
+      .subscribeOn(...)
+      .observeOn(...)
+      .subscribe(...)
+  }));
+```
+Так делать не нужно, мы не для того затащили Rx в проект, чтобы использовать его в парадигме callback hell.  
+Используйте операторы `flatMap`, `concatMap` и `switchMap`:
+```java
+disposable.add(repository.getFoo()
+  .flatMap(result -> anotherRepository.getBar(result))
+  .subscribeOn(...)
+  .observeOn(...)
+  .subscribe(...));
+```
